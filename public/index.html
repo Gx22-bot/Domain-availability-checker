@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain Availability Checker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <span class="logo">Domain Checker</span>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <h1>Check Domain Availability</h1>
+            <p class="subtitle">Enter a domain name to check if it's available for sign up.</p>
+            
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="single">Single Check</button>
+                    <button class="tab-btn" data-tab="bulk">Bulk Check</button>
+                </div>
+
+                <div id="singleTab" class="tab-content active">
+                    <div class="form-group">
+                        <label for="domainInput">Domain Name</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="domainInput" placeholder="example.com" autocomplete="off">
+                            <button id="checkBtn">Check Domain</button>
+                        </div>
+                    </div>
+                    
+                    <div id="resultContainer" class="result-container hidden">
+                        <div class="icon-wrapper">
+                            <span id="statusIcon"></span>
+                        </div>
+                        <div class="result-text">
+                            <h3 id="resultTitle"></h3>
+                            <p id="resultMessage"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bulkTab" class="tab-content">
+                    <div class="form-group">
+                        <label for="bulkInput">Paste Domains (one per line)</label>
+                        <textarea id="bulkInput" rows="10" placeholder="example.com&#10;test.com&#10;google.com"></textarea>
+                        <div class="bulk-actions">
+                            <button id="bulkCheckBtn">Check All Domains</button>
+                            <button id="clearBulkBtn" class="secondary-btn">Clear</button>
+                        </div>
+                    </div>
+                    
+                    <div id="bulkResults" class="bulk-results hidden">
+                        <div class="bulk-header">
+                            <h3>Results <span id="progressCount"></span></h3>
+                            <div class="bulk-stats">
+                                <span class="stat-available">0 Available</span>
+                                <span class="stat-taken">0 Taken</span>
+                            </div>
+                        </div>
+                        <div id="bulkList" class="bulk-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
