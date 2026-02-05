@@ -16,8 +16,10 @@
 
     <main>
         <div class="container">
-            <h1>Check Domain Availability</h1>
-            <p class="subtitle">Enter a domain name to check if it's available for sign up.</p>
+            <div class="hero-section">
+                <h1>Check Domain Availability</h1>
+                <p class="subtitle">Enter a domain name to check if it's available for sign up.</p>
+            </div>
             
             <div class="card">
                 <div class="tabs">
@@ -27,10 +29,10 @@
 
                 <div id="singleTab" class="tab-content active">
                     <div class="form-group">
-                        <label for="domainInput">Domain Name</label>
+                        <label for="domainInput" class="sr-only">Domain Name</label>
                         <div class="input-wrapper">
-                            <input type="text" id="domainInput" placeholder="example.com" autocomplete="off">
-                            <button id="checkBtn">Check Domain</button>
+                            <input type="text" id="domainInput" placeholder="Enter domain name (e.g. example.com)" autocomplete="off">
+                            <button id="checkBtn">Check</button>
                         </div>
                     </div>
                     
@@ -69,6 +71,10 @@
             </div>
         </div>
     </main>
+
+    <footer>
+        <p>&copy; 2025 Domain Checker. All rights reserved.</p>
+    </footer>
 
     <script src="script.js"></script>
 </body>

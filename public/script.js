@@ -90,11 +90,31 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContainer.classList.remove('hidden');
         resultContainer.className = 'result-container'; // Reset classes
         
+        // Cleanup old copy button if exists
+        const oldBtn = resultContainer.querySelector('.copy-action-btn');
+        if (oldBtn) oldBtn.remove();
+
         if (type === 'available') {
             resultContainer.classList.add('result-available');
             statusIcon.innerHTML = checkIcon;
             resultTitle.textContent = title;
             resultMessage.textContent = message;
+
+            // Add Copy Button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'secondary-btn copy-action-btn';
+            copyBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy`;
+            copyBtn.style.marginLeft = 'auto';
+            copyBtn.style.height = '36px';
+            copyBtn.style.fontSize = '0.875rem';
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(domainInput.value);
+                const originalContent = copyBtn.innerHTML;
+                copyBtn.innerHTML = `Copied!`;
+                setTimeout(() => copyBtn.innerHTML = originalContent, 2000);
+            };
+            resultContainer.appendChild(copyBtn);
+
         } else if (type === 'taken') {
             resultContainer.classList.add('result-taken');
             statusIcon.innerHTML = errorIcon;
