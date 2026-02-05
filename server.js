@@ -26,6 +26,35 @@ app.post('/check-domain', async (req, res) => {
 
     console.log(`Checking Google Workspace status for: ${domain}`);
 
+    // Step 1: Check for Google MX Records
+    // The user wants to match the accuracy of the Google Recovery tool.
+    // That tool knows if a domain is configured for Google Workspace.
+    // Checking MX records is the most reliable way to see if it's "Occupied" by Google services,
+    // even if the Login page doesn't redirect (e.g. misconfigured or legacy accounts).
+    try {
+        const util = require('util');
+        const resolveMx = util.promisify(dns.resolveMx);
+        const mxRecords = await resolveMx(domain);
+        
+        // Check if any MX record points to Google
+        const isGoogleMx = mxRecords.some(record => 
+            record.exchange && (
+                record.exchange.includes('google.com') || 
+                record.exchange.includes('googlemail.com')
+            )
+        );
+
+        if (isGoogleMx) {
+             return res.json({ 
+                available: false, 
+                message: `Domain ${domain} is using Google Workspace (Google MX records found).`,
+                domain: domain
+            });
+        }
+    } catch (err) {
+        // Ignore errors (no MX records, etc.) and proceed to HTTP check
+    }
+
     try {
         const googleUrl = `https://www.google.com/a/${domain}/ServiceLogin`;
         const response = await fetch(googleUrl);
