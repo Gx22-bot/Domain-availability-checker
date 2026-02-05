@@ -26,45 +26,44 @@ app.post('/check-domain', async (req, res) => {
 
     console.log(`Checking Google Workspace status for: ${domain}`);
 
-    try {
-        const googleUrl = `https://www.google.com/a/${domain}/ServiceLogin`;
-        const response = await fetch(googleUrl);
-        const body = await response.text();
+            try {
+                // User specifically requested to use the logic from the Google Recovery Tool
+                // URL: https://toolbox.googleapps.com/apps/recovery/domain_in_use
+                // We fetch this page directly to see what it reports.
+                const toolboxUrl = `https://toolbox.googleapps.com/apps/recovery/domain_in_use?domain=${domain}`;
+                const response = await fetch(toolboxUrl);
+                const body = await response.text();
 
-        // Logic updated based on user feedback:
-        // The user wants to replicate the check from https://toolbox.googleapps.com/apps/recovery/domain_in_use
-        // That tool checks if a domain is "in use" by Google Workspace.
-        // If "ServiceLogin" redirects to a login page, it IS in use.
-        // If it shows "Sorry, you've reached a login page for a domain that isn't using Google Workspace", it is NOT in use.
-        
-        // HOWEVER, the user previously said "techotrends.com" is "Occupied" but my tool said "Available".
-        // And they hated the DNS check.
-        // If techotrends.com is NOT using Google Workspace, "Available" (for GW sign up) is the correct technical status.
-        // But maybe the user interprets "Available" as "I can buy this domain".
-        // Since we removed DNS check, we must be clear in our message.
-        
-        const notUsingMsg = "Sorry, you've reached a login page for a domain that isn't using";
+                // Logic based on Toolbox response HTML:
+                // 1. "is available for sign-up" -> AVAILABLE
+                // 2. "We need your contact email" -> OCCUPIED (It asks for email to help recover the account)
+                // 3. "This domain is already in use" -> OCCUPIED
                 
-                if (body.includes(notUsingMsg)) {
-                    // It looks available via ServiceLogin, but might be "Occupied" in the Recovery Tool (like techotrends.com)
-                    // Since we cannot use DNS (per user request) and cannot access the private Recovery API,
-                    // we must advise the user to verify with the specific tool they trust.
-                    const recoveryUrl = `https://toolbox.googleapps.com/apps/recovery/domain_in_use?domain=${domain}`;
-                    
+                if (body.includes("is available for sign-up")) {
                     return res.json({ 
                         available: true, 
-                        message: `Domain ${domain} appears available for Google Workspace sign up. <br><br><b>Note:</b> For 100% accuracy matching the Google Recovery Tool, <a href="${recoveryUrl}" target="_blank">click here to verify</a>.`,
+                        message: `Domain ${domain} is available for Google Workspace sign up.`,
                         domain: domain
                     });
-                } else {
+                } else if (body.includes("We need your contact email") || body.includes("This domain is already in use")) {
                     return res.json({ 
                         available: false, 
                         message: `Domain ${domain} is already using Google Workspace.`,
                         domain: domain
                     });
+                } else {
+                    // Fallback if neither signal is found (unexpected response)
+                    // We treat it as occupied/unavailable to be safe, or return an error.
+                    // But if it doesn't explicitly say available, it's safer to flag it.
+                    console.log("Toolbox response did not contain standard signals. Defaulting to unavailable or check manually.");
+                    return res.json({ 
+                        available: false, 
+                        message: `Domain ${domain} status is unclear. It does not appear to be available.`,
+                        domain: domain
+                    });
                 }
 
-    } catch (error) {
+            } catch (error) {
         console.error('Error checking Google:', error);
         return res.json({ 
             available: false, 
