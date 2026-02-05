@@ -24,7 +24,29 @@ app.post('/check-domain', async (req, res) => {
         // If URL parsing fails, just use the original string
     }
 
-    console.log(`Checking Google Workspace status for: ${domain}`);
+    console.log(`Checking status for: ${domain}`);
+
+    // Step 1: Check DNS records
+    // If the domain has DNS records, it is definitely registered/taken.
+    try {
+        const util = require('util');
+        const resolveDns = util.promisify(dns.resolve);
+        await resolveDns(domain);
+        
+        // If we get here, DNS records exist
+        return res.json({ 
+            available: false, 
+            message: `Domain ${domain} is already registered (DNS records found).`,
+            domain: domain
+        });
+    } catch (err) {
+        // ENOTFOUND means domain doesn't resolve, which likely means it's available 
+        // (or at least not active). We'll proceed to the Google check just in case.
+        if (err.code !== 'ENOTFOUND') {
+            console.error('DNS Check Error:', err);
+            // If it's another error, we can't be sure, but let's proceed or report error
+        }
+    }
 
     try {
         const googleUrl = `https://www.google.com/a/${domain}/ServiceLogin`;
@@ -41,7 +63,7 @@ app.post('/check-domain', async (req, res) => {
         if (body.includes(notUsingMsg)) {
             return res.json({ 
                 available: true, 
-                message: `Domain ${domain} is available for Google Workspace sign up.`,
+                message: `Domain ${domain} appears to be available (No DNS records found).`,
                 domain: domain
             });
         } else {
