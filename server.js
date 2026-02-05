@@ -24,46 +24,31 @@ app.post('/check-domain', async (req, res) => {
         // If URL parsing fails, just use the original string
     }
 
-    console.log(`Checking status for: ${domain}`);
-
-    // Step 1: Check DNS records
-    // If the domain has DNS records, it is definitely registered/taken.
-    try {
-        const util = require('util');
-        const resolveDns = util.promisify(dns.resolve);
-        await resolveDns(domain);
-        
-        // If we get here, DNS records exist
-        return res.json({ 
-            available: false, 
-            message: `Domain ${domain} is already registered (DNS records found).`,
-            domain: domain
-        });
-    } catch (err) {
-        // ENOTFOUND means domain doesn't resolve, which likely means it's available 
-        // (or at least not active). We'll proceed to the Google check just in case.
-        if (err.code !== 'ENOTFOUND') {
-            console.error('DNS Check Error:', err);
-            // If it's another error, we can't be sure, but let's proceed or report error
-        }
-    }
+    console.log(`Checking Google Workspace status for: ${domain}`);
 
     try {
         const googleUrl = `https://www.google.com/a/${domain}/ServiceLogin`;
         const response = await fetch(googleUrl);
         const body = await response.text();
 
-        // Logic:
-        // If "Sorry, you've reached a login page for a domain that isn't using Google Workspace", 
-        // it means the domain is NOT registered with Google Workspace => AVAILABLE for sign up.
-        // Otherwise (e.g. shows login form), it IS registered => TAKEN.
-
+        // Logic updated based on user feedback:
+        // The user wants to replicate the check from https://toolbox.googleapps.com/apps/recovery/domain_in_use
+        // That tool checks if a domain is "in use" by Google Workspace.
+        // If "ServiceLogin" redirects to a login page, it IS in use.
+        // If it shows "Sorry, you've reached a login page for a domain that isn't using Google Workspace", it is NOT in use.
+        
+        // HOWEVER, the user previously said "techotrends.com" is "Occupied" but my tool said "Available".
+        // And they hated the DNS check.
+        // If techotrends.com is NOT using Google Workspace, "Available" (for GW sign up) is the correct technical status.
+        // But maybe the user interprets "Available" as "I can buy this domain".
+        // Since we removed DNS check, we must be clear in our message.
+        
         const notUsingMsg = "Sorry, you've reached a login page for a domain that isn't using";
         
         if (body.includes(notUsingMsg)) {
             return res.json({ 
                 available: true, 
-                message: `Domain ${domain} appears to be available (No DNS records found).`,
+                message: `Domain ${domain} is available for Google Workspace sign up (Not currently using Google Workspace).`,
                 domain: domain
             });
         } else {
