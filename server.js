@@ -26,35 +26,6 @@ app.post('/check-domain', async (req, res) => {
 
     console.log(`Checking Google Workspace status for: ${domain}`);
 
-    // Step 1: Check for Google MX Records
-    // The user wants to match the accuracy of the Google Recovery tool.
-    // That tool knows if a domain is configured for Google Workspace.
-    // Checking MX records is the most reliable way to see if it's "Occupied" by Google services,
-    // even if the Login page doesn't redirect (e.g. misconfigured or legacy accounts).
-    try {
-        const util = require('util');
-        const resolveMx = util.promisify(dns.resolveMx);
-        const mxRecords = await resolveMx(domain);
-        
-        // Check if any MX record points to Google
-        const isGoogleMx = mxRecords.some(record => 
-            record.exchange && (
-                record.exchange.includes('google.com') || 
-                record.exchange.includes('googlemail.com')
-            )
-        );
-
-        if (isGoogleMx) {
-             return res.json({ 
-                available: false, 
-                message: `Domain ${domain} is using Google Workspace (Google MX records found).`,
-                domain: domain
-            });
-        }
-    } catch (err) {
-        // Ignore errors (no MX records, etc.) and proceed to HTTP check
-    }
-
     try {
         const googleUrl = `https://www.google.com/a/${domain}/ServiceLogin`;
         const response = await fetch(googleUrl);
@@ -73,20 +44,25 @@ app.post('/check-domain', async (req, res) => {
         // Since we removed DNS check, we must be clear in our message.
         
         const notUsingMsg = "Sorry, you've reached a login page for a domain that isn't using";
-        
-        if (body.includes(notUsingMsg)) {
-            return res.json({ 
-                available: true, 
-                message: `Domain ${domain} is available for Google Workspace sign up (Not currently using Google Workspace).`,
-                domain: domain
-            });
-        } else {
-            return res.json({ 
-                available: false, 
-                message: `Domain ${domain} is already using Google Workspace.`,
-                domain: domain
-            });
-        }
+                
+                if (body.includes(notUsingMsg)) {
+                    // It looks available via ServiceLogin, but might be "Occupied" in the Recovery Tool (like techotrends.com)
+                    // Since we cannot use DNS (per user request) and cannot access the private Recovery API,
+                    // we must advise the user to verify with the specific tool they trust.
+                    const recoveryUrl = `https://toolbox.googleapps.com/apps/recovery/domain_in_use?domain=${domain}`;
+                    
+                    return res.json({ 
+                        available: true, 
+                        message: `Domain ${domain} appears available for Google Workspace sign up. <br><br><b>Note:</b> For 100% accuracy matching the Google Recovery Tool, <a href="${recoveryUrl}" target="_blank">click here to verify</a>.`,
+                        domain: domain
+                    });
+                } else {
+                    return res.json({ 
+                        available: false, 
+                        message: `Domain ${domain} is already using Google Workspace.`,
+                        domain: domain
+                    });
+                }
 
     } catch (error) {
         console.error('Error checking Google:', error);
