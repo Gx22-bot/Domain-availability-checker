@@ -17,9 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBulkBtn = document.getElementById('clearBulkBtn');
     const bulkResults = document.getElementById('bulkResults');
     const bulkList = document.getElementById('bulkList');
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
     const progressCount = document.getElementById('progressCount');
     const statAvailable = document.querySelector('.stat-available');
     const statTaken = document.querySelector('.stat-taken');
+
+    let bulkResultsData = [];
 
     // SVG Icons
     const checkIcon = `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
@@ -39,7 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
         bulkInput.value = '';
         bulkResults.classList.add('hidden');
         bulkList.innerHTML = '';
+        exportCsvBtn.style.display = 'none';
+        bulkResultsData = [];
     });
+    exportCsvBtn.addEventListener('click', exportToCSV);
 
     // Tab Switching
     tabBtns.forEach(btn => {
@@ -143,6 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
         bulkList.innerHTML = '';
         bulkCheckBtn.disabled = true;
         bulkCheckBtn.textContent = 'Checking...';
+        exportCsvBtn.style.display = 'none';
+        
+        bulkResultsData = [];
         
         let availableCount = 0;
         let takenCount = 0;
@@ -161,6 +170,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const data = await fetchDomainStatus(domain);
                 
+                bulkResultsData.push({
+                    domain: domain,
+                    status: data.available ? 'Available' : 'Taken',
+                    message: data.message
+                });
+
                 if (data.available) {
                     availableCount++;
                     updateBulkItem(item, 'available', 'Available');
@@ -169,6 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateBulkItem(item, 'taken', 'Taken');
                 }
             } catch (error) {
+                bulkResultsData.push({
+                    domain: domain,
+                    status: 'Error',
+                    message: 'Error checking domain'
+                });
                 updateBulkItem(item, 'error', 'Error');
             }
 
@@ -178,6 +198,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         bulkCheckBtn.disabled = false;
         bulkCheckBtn.textContent = 'Check All Domains';
+        
+        if (bulkResultsData.length > 0) {
+            exportCsvBtn.style.display = 'block';
+        }
+    }
+
+    function exportToCSV() {
+        if (bulkResultsData.length === 0) return;
+
+        const headers = ['Domain', 'Status', 'Message'];
+        const csvContent = [
+            headers.join(','),
+            ...bulkResultsData.map(row => 
+                [row.domain, row.status, `"${row.message ? row.message.replace(/"/g, '""') : ''}"`].join(',')
+            )
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `domain_check_results_${new Date().toISOString().slice(0,10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function createBulkItem(domain) {

@@ -334,6 +334,12 @@ textarea:focus {
     margin-bottom: 1rem;
 }
 
+.bulk-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 .bulk-header h3 {
     margin: 0;
     font-size: 1.125rem;
@@ -349,6 +355,12 @@ textarea:focus {
     background: var(--bg-color);
     padding: 0.5rem 1rem;
     border-radius: 20px;
+}
+
+.small-btn {
+    height: 36px;
+    padding: 0 1rem;
+    font-size: 0.875rem;
 }
 
 .stat-available { color: var(--success-text); }
