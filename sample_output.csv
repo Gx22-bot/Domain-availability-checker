@@ -1,0 +1,10 @@
+DOMAIN,DISPLAY NAME,EMAIL_15,PASSWORD,SEQUENCER,EMAIL GUARD
+example.com,Shelby Mccarty,shelby.mccarty,pass123,,
+example.com,Shelby Mccarty,shelbymccarty,pass123,,
+example.com,Shelby Mccarty,shelby_mccarty,pass123,,
+example.com,Shelby Mccarty,mccarty.shelby,pass123,,
+test.org,John Doe,john.doe,secret456,,
+test.org,John Doe,johndoe,secret456,,
+test.org,John Doe,john_doe,secret456,,
+test.org,John Doe,doe.john,secret456,,
+test.org,John Doe,john,secret456,,
