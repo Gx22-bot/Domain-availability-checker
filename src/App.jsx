@@ -638,9 +638,9 @@ function App() {
 
               <div className="border rounded-lg overflow-hidden shadow-sm">
                  <div className="bg-gray-100 px-4 py-2 border-b font-medium text-sm text-gray-600 flex justify-between items-center">
-                    <span>Output Preview (First 50 rows)</span>
+                    <span>Output Preview (First 100 rows)</span>
                   </div>
-                  <div className="overflow-x-auto max-h-[600px]">
+                  <div className="overflow-auto max-h-[80vh]">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50 sticky top-0">
                         <tr>
@@ -652,7 +652,7 @@ function App() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {outputData.slice(0, 50).map((row, i) => (
+                        {outputData.slice(0, 100).map((row, i) => (
                           <tr key={i} className="hover:bg-gray-50">
                             <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{row['DOMAIN']}</td>
                             <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{row['DISPLAY NAME']}</td>
